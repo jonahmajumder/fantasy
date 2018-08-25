@@ -3,13 +3,13 @@ from bs4 import BeautifulSoup
 import csv
 import os, sys
 import numpy as np
+import pickle
 
 # nfl data function pool
 
 def get_nfl_data(STAT_TYPE, YEAR):
     # create URL (page must actually exist)
     url = f'https://www.pro-football-reference.com/years/{YEAR}/{STAT_TYPE}.htm'
-
     # get page data and parse to nice HTML with beautiful soup
     r = requests.get(url)
     page = BeautifulSoup(r.content, 'html.parser')
@@ -80,3 +80,20 @@ def data_to_csv(data, csvfilename):
     wr.writerows(data)
     outfile.close()
     return
+
+def data_from_csv(csvfilename):
+    infile = open(csvfilename,'r')
+    rdr = csv.reader(infile)
+    data = []
+    for row in rdr:
+        data.append(row)
+    infile.close()
+    return np.matrix(data)
+
+def save_data_variable(data, picklefile):
+    pickle.dump(data, open(picklefile, 'wb'))
+    return
+
+def load_data_variable(picklefile):
+    data = pickle.load(open(picklefile, 'rb'))
+    return data
