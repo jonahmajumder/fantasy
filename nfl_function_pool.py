@@ -74,6 +74,27 @@ def get_nfl_data(STAT_TYPE, YEAR):
 
     return data_with_header
 
+def _data_col(data, col_name):
+    col_headers = [data[0, i] for i in range(np.shape(data)[1])]
+    try:
+        col_idx = col_headers.index(col_name)
+    except ValueError:
+        print('Column not found in data.')
+        return []
+    raw_col = data[1:, col_idx]
+    try:
+        col = raw_col.astype(float)
+        return col
+    except ValueError:
+        return raw_col
+
+def get_data_columns(data, column_names):
+    cols = []
+    for col_name in column_names:
+        cols.append(_data_col(data, col_name))
+    outmat = np.hstack(cols)
+    return outmat
+
 def data_to_csv(data, csvfilename):
     outfile = open(csvfilename,'w')
     wr = csv.writer(outfile)
