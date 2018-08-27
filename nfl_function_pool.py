@@ -52,7 +52,6 @@ def get_nfl_data(STAT_TYPE, YEAR):
         return (not tag.has_attr('class')) and (tag.name == 'tr')
 
     table_rows = main_table_body.find_all(table_row_without_class)
-
     all_data = []
     for i, row in enumerate(table_rows):
         row_data = []
@@ -71,29 +70,40 @@ def get_nfl_data(STAT_TYPE, YEAR):
         all_data.append(row_data)
 
     data_with_header = np.vstack((categories, all_data))
-
+    
     return data_with_header
 
-def _data_col(data, col_name):
+def _data_col(data, column_name):
     col_headers = [data[0, i] for i in range(np.shape(data)[1])]
     try:
-        col_idx = col_headers.index(col_name)
+        col_idx = col_headers.index(column_name)
     except ValueError:
-        print('Column not found in data.')
-        return []
+        print('Column "{}" not found in data.'.format(column_name))
+        return None
     raw_col = data[1:, col_idx]
-    try:
-        col = raw_col.astype(float)
-        return col
-    except ValueError:
-        return raw_col
+    return _column_convert(raw_col, column_name)
+
+def _column_convert(column, column_name):
+    new_col = np.zeros(np.shape(column))
+    for i in range(np.shape(column)[0]):
+        try:
+            new_col[i,0] = float(column[i,0])
+        except ValueError:
+            # print('Did not convert "{}" to float.'.format(column_name))
+            return column
+    return new_col
 
 def get_data_columns(data, column_names):
     cols = []
     for col_name in column_names:
-        cols.append(_data_col(data, col_name))
-    outmat = np.hstack(cols)
-    return outmat
+        new_col = _data_col(data, col_name)
+        if new_col is not None:
+            cols.append(new_col)
+    if len(cols) > 0:
+        outmat = np.hstack(cols)
+        return outmat
+    else:
+        return None
 
 def data_to_csv(data, csvfilename):
     outfile = open(csvfilename,'w')
